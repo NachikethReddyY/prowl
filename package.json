@@ -4,11 +4,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest run",
+    "fixture": "tsx fixture/server.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "type": "module",
   "devEngines": {
     "packageManager": {
       "name": "pnpm",
@@ -17,20 +19,23 @@
     }
   },
   "packageManager": "pnpm@12.11.2",
-  "type": "module",
   "dependencies": {
-    "better-sqlite3": "^13.0.3",
-    "cac": "^7.1.0",
-    "playwright": "^1.64.0",
-    "zod": "^4.6.7"
+    "better-sqlite3": "13.0.3",
+    "cac": "7.1.0",
+    "express": "4.21.2",
+    "multer": "1.4.5-lts.2",
+    "zod": "4.6.7"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.15",
-    "@types/better-sqlite3": "^9.6.0",
-    "@types/node": "^26.6.5",
-    "tsup": "^8.5.1",
-    "tsx": "^4.23.15",
-    "typescript": "^7.0.2",
-    "vitest": "^5.0.4"
+    "@biomejs/biome": "2.5.15",
+    "@types/better-sqlite3": "9.6.0",
+    "@types/express": "4.17.21",
+    "@types/multer": "1.4.12",
+    "@types/node": "26.6.5",
+    "playwright": "1.64.0",
+    "tsup": "8.5.1",
+    "tsx": "4.23.15",
+    "typescript": "7.0.2",
+    "vitest": "5.0.4"
   }
 }

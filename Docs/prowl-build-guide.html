@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prowl: What to Build and How</title>
+<style>
+  :root {
+    --accent-blue: #3b82f6;
+    --accent-green: #10b981;
+    --accent-amber: #f59e0b;
+    --accent-red: #ef4444;
+    --accent-purple: #8b5cf6;
+  }
+  * { box-sizing: border-box; }
+  html { background: #000000; }
+  body { margin: 0; background: #000000; color: #ededed; font: 15px/1.65 -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 56rem; margin: 0 auto; padding: 2.5rem 1.5rem 6rem; }
+  h1 { font-size: 1.5rem; letter-spacing: -0.02em; margin: 0 0 .5rem; }
+  h2 { font-size: 1.1rem; letter-spacing: -0.01em; margin: 0 0 .75rem; }
+  h2 .n { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: #555555; margin-right: .6rem; font-weight: 400; }
+  h3 { font-size: .95rem; margin: 1.25rem 0 .4rem; }
+  p { margin: .5rem 0; }
+  .secondary { color: #888888; }
+  ul, ol { margin: .5rem 0; padding-left: 1.4rem; }
+  li { margin: .25rem 0; }
+  main > section { border-top: 1px solid #1a1a1a; padding-top: 2rem; margin-top: 2.5rem; }
+  table { width: 100%; border-collapse: collapse; margin: .75rem 0; font-size: .92rem; }
+  thead th { border-bottom: 1px solid #333333; color: #888888; font-weight: 600; font-size: .84rem; text-align: left; padding: .4rem .75rem .4rem 0; }
+  tbody td { border-bottom: 1px solid #1a1a1a; padding: .55rem .75rem .55rem 0; vertical-align: top; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  tr.hl td { background: #0d0d0d; box-shadow: inset 2px 0 0 var(--accent-blue); }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .86em; background: #0d0d0d; border: 1px solid #1f1f1f; padding: .05rem .35rem; border-radius: 3px; }
+  pre { background: #080808; border: 1px solid #1f1f1f; border-radius: 6px; padding: .9rem 1rem; overflow-x: auto; font-size: .84rem; }
+  pre code { background: none; border: none; padding: 0; }
+  nav.toc { position: sticky; top: 0; background: #000000; border-bottom: 1px solid #1a1a1a; padding: .6rem 0; margin-bottom: 2rem; }
+  nav.toc ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .2rem 1rem; justify-content: center; }
+  nav.toc a { color: #888888; font-size: .84rem; text-decoration: none; }
+  nav.toc a:hover { color: #ededed; text-decoration: underline; }
+  dl.meta { display: flex; flex-wrap: wrap; gap: .3rem 1.5rem; margin: 1rem 0 0; font-size: .86rem; }
+  dl.meta dt { color: #888888; }
+  dl.meta dd { margin: 0; color: #ededed; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: .8rem 0; }
+  @media (max-width: 700px) { .grid2 { grid-template-columns: 1fr; } }
+  .panel { background: #080808; border: 1px solid #1f1f1f; border-top: 3px solid #333333; border-radius: 6px; padding: 1rem 1.1rem; }
+  .panel.pro { border-top-color: var(--accent-green); }
+  .panel.con { border-top-color: var(--accent-red); }
+  .panel h3 { margin-top: 0; display: flex; align-items: center; gap: .5rem; }
+  .panel h3 .tag { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .72rem; font-weight: 400; border: 1px solid; border-radius: 4px; padding: .05rem .45rem; }
+  .panel.pro h3 .tag { color: var(--accent-green); border-color: var(--accent-green); }
+  .panel.con h3 .tag { color: var(--accent-red); border-color: var(--accent-red); }
+  ol.miles { list-style: none; padding: 0; margin: 1rem 0 0; }
+  ol.miles > li { border-left: 1px solid #262626; margin: 0 0 0 .4rem; padding: 0 0 1.5rem 1.25rem; position: relative; }
+  ol.miles > li:last-child { padding-bottom: .25rem; }
+  ol.miles > li::before { content: ""; position: absolute; left: -5px; top: .45rem; width: 8px; height: 8px; background: #000000; border: 1px solid #888888; }
+  ol.miles > li.active::before { border-color: var(--accent-amber); background: var(--accent-amber); }
+  ol.miles h3 { margin: 0 0 .2rem; }
+  ol.miles .meta { font-size: .84rem; color: #888888; margin-bottom: .25rem; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  .gate-tag { color: var(--accent-amber); border: 1px solid var(--accent-amber); border-radius: 4px; padding: .05rem .45rem; font-size: .78rem; }
+  .flow { display: flex; flex-wrap: wrap; align-items: stretch; gap: .35rem; margin: 1rem 0; }
+  .node { flex: 1 1 7.5rem; background: #080808; border: 1px solid #1f1f1f; border-top: 3px solid #333333; border-radius: 6px; padding: .65rem .75rem; }
+  .node b { display: block; font-size: .88rem; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  .node span { font-size: .8rem; color: #888888; }
+  .node.s-green { border-top-color: var(--accent-green); }
+  .node.s-blue { border-top-color: var(--accent-blue); }
+  .node.s-purple { border-top-color: var(--accent-purple); }
+  .node.s-amber { border-top-color: var(--accent-amber); }
+  .flow-arrow { align-self: center; color: #555555; }
+  .bars { margin: .75rem 0; display: grid; gap: .55rem; }
+  .bar-row { display: grid; grid-template-columns: 6.5rem 1fr 4.5rem; align-items: center; gap: .7rem; font-size: .86rem; }
+  .bar-track { background: #111111; border-radius: 4px; height: 1rem; overflow: hidden; }
+  .bar-fill { height: 100%; }
+  .bar-num { text-align: right; color: #ededed; font-variant-numeric: tabular-nums; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  @media (max-width: 560px) { .bar-row { grid-template-columns: 4.2rem 1fr 3.8rem; } }
+  .tier-switch { display: flex; gap: .5rem; margin: .75rem 0 .25rem; }
+  .tier-switch button { background: #080808; border: 1px solid #2a2a2a; color: #ededed; border-radius: 6px; padding: .4rem .9rem; font-size: .84rem; cursor: pointer; }
+  .tier-switch button:hover { background: #111111; }
+  .tier-switch button[aria-pressed="true"] { border-color: var(--accent-blue); background: #111111; }
+  figure.diagram { margin: 1rem 0; background: #080808; border: 1px solid #1f1f1f; border-radius: 6px; padding: 1rem; }
+  figure.diagram svg { width: 100%; height: auto; display: block; }
+  figcaption { color: #555555; font-size: .82rem; margin-top: .5rem; }
+  details { border: 1px solid #1f1f1f; border-radius: 6px; margin: .7rem 0; background: #080808; }
+  summary { cursor: pointer; padding: .75rem 1rem; font-weight: 600; font-size: .92rem; }
+  details .body { padding: 0 1rem 1rem; }
+  footer { color: #555555; font-size: .82rem; border-top: 1px solid #1a1a1a; padding-top: 2rem; margin-top: 2.5rem; }
+</style>
+</head>
+<body>
+<main>
+<nav class="toc" aria-label="Contents">
+<ul>
+<li><a href="#decision">Decision</a></li>
+<li><a href="#users">Users</a></li>
+<li><a href="#arch">Architecture</a></li>
+<li><a href="#principles">Principles</a></li>
+<li><a href="#roadmap">Roadmap</a></li>
+<li><a href="#ladder">Ladder</a></li>
+<li><a href="#tiers">Tiers</a></li>
+<li><a href="#cli">CLI</a></li>
+<li><a href="#lifecycle">Lifecycle</a></li>
+<li><a href="#auth">Auth</a></li>
+<li><a href="#metrics">Metrics</a></li>
+<li><a href="#not">Non-goals</a></li>
+<li><a href="#next">Next</a></li>
+</ul>
+</nav>
+
+<header>
+<h1>Prowl: What to Build and How</h1>
+<p>A local browser daemon plus thin CLI that lets any agent, vision or not, operate websites cheaply and safely. Logged-in sessions whose secrets the model never reads. Compact token-budgeted output. Guaranteed cleanup of every browser it starts.</p>
+<dl class="meta">
+<dt>Status</dt><dd>M0 decision gate</dd>
+<dt>Strategy</dt><dd>build from scratch</dd>
+<dt>Fixture</dt><dd>5/5 passing</dd>
+</dl>
+<p class="secondary">Source: build spec v2 and agent guide. If this page and the spec disagree, the spec wins.</p>
+</header>
+
+<section id="decision" aria-labelledby="decision-h">
+<h2 id="decision-h"><span class="n">00</span>Decision: build from scratch</h2>
+<p>Build your own daemon and CLI on Playwright core behind a <code>BrowserBackend</code> interface. Use agent-browser and Playwright MCP only as M0 bake-off baselines, not as the foundation.</p>
+<div class="grid2">
+<div class="panel pro">
+<h3>Why scratch wins <span class="tag">PRO</span></h3>
+<ul>
+<li>Prowl value is the surrounding layer: leases, secret refs, domain profiles, ladder, tier budgets, verified memory.</li>
+<li>Those tools cover snapshot plus act only, the least differentiated slice.</li>
+<li>You keep the backend abstraction and process ownership needed for M2 and M6.</li>
+</ul>
+</div>
+<div class="panel con">
+<h3>Why layering loses <span class="tag">CON</span></h3>
+<ul>
+<li>Subprocess driving plus output re-parsing: brittle and verbose.</li>
+<li>Verbose output breaks token budgets at every step.</li>
+<li>Single backend collapses the stealth abstraction.</li>
+<li>No leases, no secret refs, no process-group cleanup.</li>
+</ul>
+</div>
+</div>
+<p class="secondary">Borrow conventions (ref format <code>eN</code>, observe-after-act), not the process. Flip only if M0 shows a massive gap plus a library API, multi-backend support, and leases.</p>
+</section>
+
+<section id="users" aria-labelledby="users-h">
+<h2 id="users-h"><span class="n">01</span>Users, in build order</h2>
+<ol>
+<li>Test your own web app with a logged-in profile. Build for this first.</li>
+<li>Operate third-party apps you hold accounts on and have permission to automate.</li>
+<li>Read JS-heavy or gated pages where plain HTTP fetch fails.</li>
+<li>Harder public pages via pluggable stealth backends. Optional, last.</li>
+</ol>
+<h3>Why it exists</h3>
+<table>
+<thead><tr><th>Differentiator</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td>Auth without secret exposure</td><td>Domain-bound profiles, secret refs resolved inside daemon only, scrubbing, eval gating, login handoff</td></tr>
+<tr><td>Tier-aware output</td><td>Same verbs, budgets and defaults tuned per model tier</td></tr>
+<tr><td>Fetch-first ladder</td><td>HTTP to browser to profile to stealth to human, typed reasons, hard caps</td></tr>
+<tr><td>Lease-based lifecycle</td><td>Browsers cannot outlive owner; leak count is a tested metric</td></tr>
+<tr><td>Structured memory</td><td>Verified hints, not free-text notes</td></tr>
+</tbody>
+</table>
+</section>
+
+<section id="arch" aria-labelledby="arch-h">
+<h2 id="arch-h"><span class="n">02</span>Architecture</h2>
+<p>Agent or script calls the thin <code>prowl</code> client, which speaks JSON-RPC 2.0 over a Unix socket (named pipe on Windows, user-only permissions) to <code>prowld</code>, one daemon per user. CLI calls are short-lived; browsers persist in the daemon between commands. Auto-starts on first use, exits after 15 idle minutes with zero sessions. Nothing listens on a network port.</p>
+<figure class="diagram">
+<svg viewBox="0 0 640 300" role="img" aria-label="Prowl architecture diagram">
+<rect x="180" y="8" width="280" height="44" rx="4" fill="#080808" stroke="#666666" stroke-width="1"/>
+<text x="320" y="35" text-anchor="middle" fill="#ededed" font-size="14" font-family="ui-monospace, Menlo, Consolas, monospace">agent / script / n8n</text>
+<line x1="320" y1="52" x2="320" y2="72" stroke="#555555" stroke-width="1"/>
+<polygon points="315,72 325,72 320,79" fill="#555555"/>
+<rect x="150" y="82" width="340" height="44" rx="4" fill="#080808" stroke="#666666" stroke-width="1"/>
+<text x="320" y="109" text-anchor="middle" fill="#ededed" font-size="14" font-family="ui-monospace, Menlo, Consolas, monospace">prowl thin CLI (parse, format)</text>
+<line x1="320" y1="126" x2="320" y2="146" stroke="#555555" stroke-width="1"/>
+<polygon points="315,146 325,146 320,153" fill="#555555"/>
+<rect x="200" y="156" width="240" height="40" rx="4" fill="rgba(59,130,246,0.08)" stroke="#3b82f6" stroke-width="1.5"/>
+<text x="320" y="181" text-anchor="middle" fill="#ededed" font-size="14" font-family="ui-monospace, Menlo, Consolas, monospace">prowld daemon</text>
+<line x1="140" y1="216" x2="140" y2="262" stroke="#333333" stroke-width="1"/>
+<line x1="320" y1="196" x2="320" y2="216" stroke="#555555" stroke-width="1"/>
+<line x1="500" y1="216" x2="500" y2="262" stroke="#333333" stroke-width="1"/>
+<line x1="140" y1="216" x2="500" y2="216" stroke="#333333" stroke-width="1"/>
+<rect x="30" y="262" width="220" height="32" rx="4" fill="#080808" stroke="#333333"/>
+<text x="140" y="282" text-anchor="middle" fill="#888888" font-size="12" font-family="ui-monospace, Menlo, Consolas, monospace">Router / Sessions / Auth</text>
+<rect x="260" y="262" width="120" height="32" rx="4" fill="#080808" stroke="#333333"/>
+<text x="320" y="282" text-anchor="middle" fill="#888888" font-size="12" font-family="ui-monospace, Menlo, Consolas, monospace">Backends</text>
+<rect x="390" y="262" width="220" height="32" rx="4" fill="#080808" stroke="#333333"/>
+<text x="500" y="282" text-anchor="middle" fill="#888888" font-size="12" font-family="ui-monospace, Menlo, Consolas, monospace">Snapshot / Memory / Detect</text>
+</svg>
+<figcaption>The daemon is the focal point: it owns every browser. Socket is user-only; no network ports.</figcaption>
+</figure>
+<h3>Stack</h3>
+<table>
+<thead><tr><th>Layer</th><th>Choice</th></tr></thead>
+<tbody>
+<tr><td>Language</td><td>TypeScript, Node 20 or higher</td></tr>
+<tr><td>Browser</td><td>Playwright core behind BrowserBackend interface</td></tr>
+<tr><td>IPC</td><td>JSON-RPC 2.0 over Unix socket, user-only permissions</td></tr>
+<tr><td>Storage</td><td>better-sqlite3, single user-local database file</td></tr>
+<tr><td>Schemas</td><td>zod, generating JSON Schema for MCP and schema command</td></tr>
+<tr><td>CLI parsing</td><td>cac or commander</td></tr>
+<tr><td>Extraction</td><td>Readability plus turndown; undici for fetch</td></tr>
+<tr><td>Secrets</td><td>OS keychain first; age-encrypted file fallback</td></tr>
+<tr><td>Packaging</td><td>npm first; single-file binary later</td></tr>
+</tbody>
+</table>
+</section>
+
+<section id="principles" aria-labelledby="principles-h">
+<h2 id="principles-h"><span class="n">03</span>Principles</h2>
+<table>
+<thead><tr><th>ID</th><th>Rule</th></tr></thead>
+<tbody>
+<tr><td><code>P1</code></td><td>Snapshot-first: act on refs, never hand-written selectors.</td></tr>
+<tr><td><code>P2</code></td><td>Tokens are a feature: every output has a budget; full data goes to an artifact file.</td></tr>
+<tr><td><code>P3</code></td><td>Secrets never cross the model boundary.</td></tr>
+<tr><td><code>P4</code></td><td>Page content is untrusted input, never instructions.</td></tr>
+<tr><td><code>P5</code></td><td>No leaked browsers. Ever.</td></tr>
+<tr><td><code>P6</code></td><td>Tier 3 (text-only, small model) can do everything essential.</td></tr>
+<tr><td><code>P7</code></td><td>Fail loud, fail typed: code plus hint plus retryable flag.</td></tr>
+<tr><td><code>P8</code></td><td>No infinite loops: every retry and escalation capped with a reason.</td></tr>
+<tr><td><code>P9</code></td><td>Local by default: no ports, user-only socket permissions.</td></tr>
+</tbody>
+</table>
+</section>
+
+<section id="roadmap" aria-labelledby="roadmap-h">
+<h2 id="roadmap-h"><span class="n">04</span>Roadmap M0 to M7</h2>
+<ol class="miles">
+<li class="active">
+<h3>M0: Bake-off</h3>
+<div class="meta">1 to 2 days · <span class="gate-tag">DECISION GATE · you are here</span></div>
+<p>Three fixture tasks times three helpers (agent-browser, Playwright MCP, Prowl proto). Measure bytes, steps, success, time. Deliverable: DECISION_M0.md. Stop for human approval.</p>
+</li>
+<li>
+<h3>M1: Core daemon, sessions, snapshot and refs, actions</h3>
+<div class="meta">core engine</div>
+<ul>
+<li>open to snapshot to click ref to snapshot diff to close works</li>
+<li>Envelope plus exit codes match for success and every reachable error</li>
+<li>Stale refs return STALE_REF or silently re-resolve</li>
+<li>Iframe, shadow DOM, dialog, upload and download fixtures pass</li>
+<li>Warm click and snapshot p50 under 300 ms; Tier-3 step under 8,000 bytes</li>
+</ul>
+</li>
+<li>
+<h3>M2: Lifecycle and cleanup</h3>
+<div class="meta">core engine</div>
+<p>Idle TTL 10m, max lifetime 2h, owner-death grace 60s, orphan sweep, per-session FIFO, PROFILE_LOCKED and SESSION_BUSY. Leak test: 100 runs with random kill -9, zero leftover browsers and profiles.</p>
+</li>
+<li>
+<h3>M3: Profiles and auth</h3>
+<div class="meta">trust and safety</div>
+<p>Pre-authed profile, cookie import, headed login handoff. Auth canary plus AUTH_REQUIRED. Allowed-domains enforced. Eval denied by default. Scrubber plus canary-grep with zero hits. Audit log. Handoff and resume.</p>
+</li>
+<li>
+<h3>M4: Fetch, ladder, extraction, memory</h3>
+<div class="meta">trust and safety</div>
+<p>fetch and read with escalation trace and hard caps. Extraction quality at least 90 percent on a 30-page corpus. Hidden-content stripping plus injection warnings. Verified memory with TTL and forget.</p>
+</li>
+<li>
+<h3>M5: Tiers, plan runner, MCP, agent guide</h3>
+<div class="meta">scale to agents</div>
+<p>Tier byte defaults. Tier-3 never needs screenshots. Plan runner stops at first failure with per-step envelopes. MCP generated from zod. Guide validated by a real run.</p>
+</li>
+<li>
+<h3>M6: Stealth backends plus detection</h3>
+<div class="meta">scale to agents · timeboxed</div>
+<p>Challenge detector at least 90 percent precision. Two extra backends pass conformance. L3 and L4 escalation with hard abort. No custom fingerprint engine, no solvers.</p>
+</li>
+<li>
+<h3>M7: Hardening plus packaging</h3>
+<div class="meta">ship hardening</div>
+<p>API-token injection plus scripted login with secret and totp refs. Encrypt-at-rest for medium-risk profiles and up. npm package. Windows pipe verified.</p>
+</li>
+</ol>
+</section>
+
+<section id="ladder" aria-labelledby="ladder-h">
+<h2 id="ladder-h"><span class="n">05</span>Escalation ladder</h2>
+<p><code>prowl read</code> climbs one rung at a time, cheapest first, with 1 attempt plus 1 retry per level then a hard abort with a reason trace. Default max level is 2; levels 3 and 4 need an explicit flag.</p>
+<div class="flow" aria-label="Escalation levels cheapest first">
+<div class="node s-green"><b>L0 fetch</b><span>undici, no JS, markdown out</span></div>
+<div class="flow-arrow" aria-hidden="true">›</div>
+<div class="node s-blue"><b>L1 browser</b><span>ephemeral, default backend</span></div>
+<div class="flow-arrow" aria-hidden="true">›</div>
+<div class="node s-blue"><b>L2 profile</b><span>persistent, authenticated; default max</span></div>
+<div class="flow-arrow" aria-hidden="true">›</div>
+<div class="node s-purple"><b>L3 stealth</b><span>alternate backend, explicit flag</span></div>
+<div class="flow-arrow" aria-hidden="true">›</div>
+<div class="node s-amber"><b>L4 human</b><span>handoff, operator solves</span></div>
+</div>
+<p class="secondary">Escalate on: empty body, enable-JavaScript shell, challenge detected, 401 or 403. Start at L2 when a profile is given. Documents return DOCUMENT_DETECTED with a path, never parsed inline.</p>
+</section>
+
+<section id="tiers" aria-labelledby="tiers-h">
+<h2 id="tiers-h"><span class="n">06</span>Model tiers</h2>
+<p>Same verbs, different budgets. Tier 3 (text-only, small model) must be able to do everything essential without screenshots, coordinates, or hover discovery.</p>
+<div class="bars" aria-label="Output budget per tier in bytes">
+<div class="bar-row"><span>Tier 1 vision</span><div class="bar-track"><div class="bar-fill" style="width:100%;background:var(--accent-blue)"></div></div><span class="bar-num">20,000</span></div>
+<div class="bar-row"><span>Tier 2 CLI</span><div class="bar-track"><div class="bar-fill" style="width:60%;background:var(--accent-purple)"></div></div><span class="bar-num">12,000</span></div>
+<div class="bar-row"><span>Tier 3 text</span><div class="bar-track"><div class="bar-fill" style="width:30%;background:var(--accent-green)"></div></div><span class="bar-num">6,000</span></div>
+</div>
+<div class="tier-switch" role="group" aria-label="Highlight a tier in the table">
+<button type="button" data-tier="row-t1" aria-pressed="false">Tier 1</button>
+<button type="button" data-tier="row-t2" aria-pressed="false">Tier 2</button>
+<button type="button" data-tier="row-t3" aria-pressed="false">Tier 3</button>
+</div>
+<p id="tier-note" class="secondary">Select a tier to highlight its row. The table below reads fully without it.</p>
+<table>
+<thead><tr><th>Tier</th><th>Output</th><th>Snapshot</th><th>Screenshots</th></tr></thead>
+<tbody>
+<tr id="row-t1"><td>Tier 1 vision</td><td>Markdown</td><td>full</td><td>allowed</td></tr>
+<tr id="row-t2"><td>Tier 2 CLI</td><td>Markdown plus JSON</td><td>interactive plus scope</td><td>on request</td></tr>
+<tr id="row-t3"><td>Tier 3 text</td><td>JSON only</td><td>interactive-only, compact</td><td>never</td></tr>
+</tbody>
+</table>
+<p class="secondary">Observe-after-act diffs are capped to 10 lines on Tier 3. Truncation spills to a per-session artifact, paged via artifact read.</p>
+<script>
+(function () {
+  var notes = {
+    "row-t1": "Tier 1: full snapshots and Markdown, 20,000 byte budget, screenshots allowed.",
+    "row-t2": "Tier 2: interactive snapshots, Markdown plus JSON, 12,000 byte budget.",
+    "row-t3": "Tier 3: compact JSON only, 6,000 byte budget, screenshots never."
+  };
+  var buttons = document.querySelectorAll(".tier-switch button");
+  var note = document.getElementById("tier-note");
+  function clear() {
+    for (var i = 0; i < buttons.length; i++) buttons[i].setAttribute("aria-pressed", "false");
+    for (var k in notes) document.getElementById(k).classList.remove("hl");
+  }
+  for (var i = 0; i < buttons.length; i++) {
+    buttons[i].addEventListener("click", function () {
+      var id = this.getAttribute("data-tier");
+      var was = this.getAttribute("aria-pressed") === "true";
+      clear();
+      if (!was) {
+        this.setAttribute("aria-pressed", "true");
+        document.getElementById(id).classList.add("hl");
+        note.textContent = notes[id];
+      } else {
+        note.textContent = "Select a tier to highlight its row. The table below reads fully without it.";
+      }
+    });
+  }
+})();
+</script>
+</section>
+
+<section id="cli" aria-labelledby="cli-h">
+<h2 id="cli-h"><span class="n">07</span>CLI surface</h2>
+<details open>
+<summary>Lifecycle, observe, act</summary>
+<div class="body">
+<pre><code>prowl open &lt;url&gt; [--session S] [--profile P] [--backend B] [--headed] [--ephemeral]
+prowl close [--session S]   prowl session list | kill &lt;id|all&gt; | gc
+prowl snapshot [-i] [--diff] [--max-bytes N]   prowl find --role button --name "Save"
+prowl click e4   prowl fill e2 "hi"   prowl type / press / select / check / scroll
+prowl upload / download / dialog   prowl get url|title|text|attr
+prowl extract [--format markdown|json|links|tables] [--clean]</code></pre>
+</div>
+</details>
+<details>
+<summary>Reads, auth, memory, run</summary>
+<div class="body">
+<pre><code>prowl fetch &lt;url&gt;   prowl read &lt;url&gt; [--max-level 0..4] [--profile P]
+prowl auth login &lt;url&gt; --profile P   prowl auth import-cookies &lt;file&gt; --profile P
+prowl memory search|add|forget   prowl handoff --reason "..." / prowl resume
+prowl run plan.json   prowl mcp   prowl schema</code></pre>
+<p class="secondary">Secrets never as plain args: stdin, env ref, file ref, or keychain ref only. Refs look like <code>e4</code> and go stale after navigation; on STALE_REF re-snapshot and retry.</p>
+</div>
+</details>
+</section>
+
+<section id="lifecycle" aria-labelledby="lifecycle-h">
+<h2 id="lifecycle-h"><span class="n">08</span>Lifecycle essentials</h2>
+<figure class="diagram">
+<svg viewBox="0 0 640 250" role="img" aria-label="Session state transitions">
+<rect x="20" y="30" width="110" height="38" rx="4" fill="#080808" stroke="#666666" stroke-width="1"/>
+<text x="75" y="54" text-anchor="middle" fill="#ededed" font-size="12" font-family="ui-monospace, Menlo, Consolas, monospace">starting</text>
+<rect x="180" y="30" width="110" height="38" rx="4" fill="#080808" stroke="#10b981" stroke-width="1.5"/>
+<text x="235" y="54" text-anchor="middle" fill="#ededed" font-size="12" font-family="ui-monospace, Menlo, Consolas, monospace">ready</text>
+<rect x="340" y="30" width="90" height="38" rx="4" fill="#080808" stroke="#666666" stroke-width="1"/>
+<text x="385" y="54" text-anchor="middle" fill="#ededed" font-size="12" font-family="ui-monospace, Menlo, Consolas, monospace">busy</text>
+<rect x="480" y="30" width="140" height="38" rx="4" fill="#080808" stroke="#666666" stroke-width="1"/>
+<text x="550" y="54" text-anchor="middle" fill="#ededed" font-size="12" font-family="ui-monospace, Menlo, Consolas, monospace">closed</text>
+<rect x="180" y="140" width="110" height="38" rx="4" fill="#080808" stroke="#f59e0b" stroke-width="1.5"/>
+<text x="235" y="164" text-anchor="middle" fill="#ededed" font-size="12" font-family="ui-monospace, Menlo, Consolas, monospace">handoff</text>
+<rect x="340" y="140" width="110" height="38" rx="4" fill="#080808" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="5 4"/>
+<text x="395" y="164" text-anchor="middle" fill="#ededed" font-size="12" font-family="ui-monospace, Menlo, Consolas, monospace">crashed</text>
+<line x1="130" y1="49" x2="176" y2="49" stroke="#555555" stroke-width="1"/>
+<polygon points="176,44 176,54 184,49" fill="#555555"/>
+<line x1="290" y1="42" x2="336" y2="42" stroke="#555555" stroke-width="1"/>
+<polygon points="336,37 336,47 344,42" fill="#555555"/>
+<line x1="336" y1="56" x2="290" y2="56" stroke="#555555" stroke-width="1"/>
+<polygon points="290,51 290,61 282,56" fill="#555555"/>
+<line x1="235" y1="68" x2="235" y2="136" stroke="#555555" stroke-width="1"/>
+<polygon points="230,136 240,136 235,144" fill="#555555"/>
+<line x1="245" y1="136" x2="245" y2="72" stroke="#555555" stroke-width="1"/>
+<polygon points="240,72 250,72 245,64" fill="#555555"/>
+<line x1="430" y1="49" x2="476" y2="49" stroke="#555555" stroke-width="1"/>
+<polygon points="476,44 476,54 484,49" fill="#555555"/>
+<line x1="385" y1="68" x2="390" y2="136" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="5 4"/>
+<polygon points="385,133 395,135 390,143" fill="#ef4444"/>
+<line x1="352" y1="140" x2="268" y2="72" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="5 4"/>
+<polygon points="276,77 262,66 263,80" fill="#ef4444"/>
+<text x="320" y="228" text-anchor="middle" fill="#555555" font-size="11" font-family="ui-monospace, Menlo, Consolas, monospace">solid: commands · dashed red: failure and recovery (reopen restarts)</text>
+</svg>
+<figcaption>Any state can move to closed. Commands queue FIFO per session; over 30s wait returns SESSION_BUSY. Reaper ticks every 15s. One live session per persistent profile.</figcaption>
+</figure>
+<ul>
+<li>Owner resolves from flag, env, else nearest non-shell ancestor PID. Owner death gives 60s grace, then close.</li>
+<li>Ephemeral profile dirs wiped on close and at daemon start. Kill -9 must still converge to zero orphans.</li>
+</ul>
+</section>
+
+<section id="auth" aria-labelledby="auth-h">
+<h2 id="auth-h"><span class="n">09</span>Auth essentials</h2>
+<p>Protects against: model reading plaintext creds from output, logs, or memory; creds persisting where agents can read them; injected pages steering the session off-domain. Does not stop an authorized agent from acting as the user inside allowed domains. A logged-in profile is a capability; scoping plus confirmations plus audit only reduce risk.</p>
+<table>
+<thead><tr><th>Mode</th><th>Name</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td><code>0</code></td><td>API token</td><td>header template, daemon injects</td></tr>
+<tr><td><code>1</code></td><td>Pre-authed profile</td><td>human logs in once; default recommendation</td></tr>
+<tr><td><code>2</code></td><td>Cookie import</td><td>import file, check expiry</td></tr>
+<tr><td><code>3</code></td><td>Login handoff</td><td>headed browser, human handles MFA</td></tr>
+<tr><td><code>4</code></td><td>Scripted login</td><td>secret and totp refs; last resort, M7</td></tr>
+</tbody>
+</table>
+<ul>
+<li>Profiles require allowed_domains; offsite nav including redirect hops returns POLICY_DENIED.</li>
+<li>Scrubber runs on every envelope, artifact, log, memory write, and audit entry. Cookie values never returned.</li>
+<li>Destructive or financial actions return CONFIRMATION_REQUIRED unless flagged and policy allows.</li>
+</ul>
+</section>
+
+<section id="metrics" aria-labelledby="metrics-h">
+<h2 id="metrics-h"><span class="n">10</span>Acceptance metrics</h2>
+<table>
+<thead><tr><th>Metric</th><th class="num">Target</th></tr></thead>
+<tbody>
+<tr><td>Fixture success (scripted)</td><td class="num">≥ 95%</td></tr>
+<tr><td>Median bytes per step, Tier 3</td><td class="num">&lt; 8,000</td></tr>
+<tr><td>Leaked browsers after leak test</td><td class="num">0</td></tr>
+<tr><td>Secret-canary hits anywhere</td><td class="num">0</td></tr>
+<tr><td>Cross-domain nav on authed profile</td><td class="num">0 allowed</td></tr>
+<tr><td>Challenge precision (M6)</td><td class="num">≥ 90%</td></tr>
+<tr><td>Warm click p50</td><td class="num">&lt; 300 ms</td></tr>
+</tbody>
+</table>
+</section>
+
+<section id="not" aria-labelledby="not-h">
+<h2 id="not-h"><span class="n">11</span>Explicitly not building (v1)</h2>
+<ul>
+<li>Custom fingerprint-spoofing engine; CAPTCHA solvers; proxy networks (user supplies).</li>
+<li>Self-hosting Firecrawl or doc converters as dependencies (adapter hooks only).</li>
+<li>GUI, cloud hosting, multi-user operation; bypassing auth, paywalls, or access controls.</li>
+</ul>
+</section>
+
+<section id="next" aria-labelledby="next-h">
+<h2 id="next-h"><span class="n">12</span>Next actions</h2>
+<ol>
+<li>Finish M0 bake-off: 3 tasks times 3 helpers on the fixture app; record bytes, steps, success, time.</li>
+<li>Write DECISION_M0.md (tested, results table, surprises, recommendation, open questions). Stop for review.</li>
+<li>Then M1: acceptance tests first, then daemon plus snapshot, refs, actions. Envelope plus JSON from day one.</li>
+</ol>
+</section>
+
+<footer>Built from the Prowl spec v2. If spec and page disagree, the spec wins. Record the call in the decisions log.</footer>
+</main>
+</body>
+</html>
